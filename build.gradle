@@ -36,22 +36,34 @@ javafx {
 
 application {
     mainClass = 'healthcare.gui.MainApplication'
+
+    // --- IMPORTANT ---
+    // This makes right-click → Run MainApplication work in IntelliJ (non-Gradle run)
+    // by telling the JVM to load JavaFX modules that are already on the classpath.
+    // IntelliJ adds your Gradle dependencies to the classpath, and these flags
+    // ensure JavaFX is activated even when not launched via the Gradle 'run' task.
+    applicationDefaultJvmArgs = [
+            '--add-modules', 'javafx.controls,javafx.fxml'
+    ]
 }
 
 test {
     useJUnitPlatform()
 }
 
-// Task to run the application
-task runApp(type: JavaExec) {
+// Task to run the application (Gradle -> application -> run still works)
+tasks.register('runApp', JavaExec) {
     group = 'application'
     description = 'Run the Healthcare System application'
     classpath = sourceSets.main.runtimeClasspath
-    main = 'healthcare.gui.MainApplication'
+    mainClass.set('healthcare.gui.MainApplication')
+
+    // Ensure JavaFX modules are enabled at runtime for the Gradle run task
+    jvmArgs '--add-modules', 'javafx.controls,javafx.fxml'
 }
 
 // Task to run tests
-task testAll(type: Test) {
+tasks.register('testAll', Test) {
     group = 'verification'
     description = 'Run all unit tests'
     useJUnitPlatform()
@@ -66,7 +78,7 @@ tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Create executable JAR
+// Create executable (fat) JAR
 jar {
     manifest {
         attributes(
